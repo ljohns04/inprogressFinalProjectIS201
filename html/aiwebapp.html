@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #333;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 2px solid #fff;
+      background: #000;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const boxSize = 20;
+    const rows = canvas.height / boxSize;
+    const cols = canvas.width / boxSize;
+
+    let snake = [{ x: 10, y: 10 }];
+    let direction = { x: 0, y: 0 };
+    let food = randomFoodPosition();
+    let score = 0;
+    let isGameStarted = false;
+
+    function randomFoodPosition() {
+      return {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows),
+      };
+    }
+
+    function drawBox(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    }
+
+    function updateGame() {
+      if (!isGameStarted) return; // Don't update until a key is pressed
+
+      const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y,
+      };
+
+      // Game Over Conditions
+      if (
+        head.x < 0 || head.y < 0 ||
+        head.x >= cols || head.y >= rows ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        alert(`Game Over! Final Score: ${score}`);
+        resetGame();
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Check if food is eaten
+      if (head.x === food.x && head.y === food.y) {
+        food = randomFoodPosition();
+        score++;
+        document.getElementById('score').textContent = `Score: ${score}`;
+      } else {
+        snake.pop();
+      }
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw food
+      drawBox(food.x, food.y, 'red');
+
+      // Draw snake
+      snake.forEach(segment => drawBox(segment.x, segment.y, 'green'));
+    }
+
+    function resetGame() {
+      snake = [{ x: 10, y: 10 }];
+      direction = { x: 0, y: 0 };
+      food = randomFoodPosition();
+      score = 0;
+      isGameStarted = false;
+      document.getElementById('score').textContent = `Score: ${score}`;
+    }
+
+    document.addEventListener('keydown', e => {
+      isGameStarted = true; // Start game when any arrow key is pressed
+
+      switch (e.key) {
+        case 'ArrowUp':
+          if (direction.y === 0) direction = { x: 0, y: -1 };
+          break;
+        case 'ArrowDown':
+          if (direction.y === 0) direction = { x: 0, y: 1 };
+          break;
+        case 'ArrowLeft':
+          if (direction.x === 0) direction = { x: -1, y: 0 };
+          break;
+        case 'ArrowRight':
+          if (direction.x === 0) direction = { x: 1, y: 0 };
+          break;
+      }
+    });
+
+    function gameLoop() {
+      updateGame();
+      drawGame();
+    }
+
+    setInterval(gameLoop, 100);
+  </script>
+</body>
+</html>
